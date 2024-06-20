@@ -30,8 +30,21 @@
   color: #61dafb;
 }
 
+.InputBox{
+  height: 4.3vh;
+  width: 20rem;
+  border-radius: 16px;
+  text-align: left;
+  justify-content: center;
+  font-size: large;
+}
+
 button {
   background-color: lime;
+  border-radius: 50px;
+  height: 5vh;
+  
+  margin-top: 20px;
 }
 
 @keyframes App-logo-spin {

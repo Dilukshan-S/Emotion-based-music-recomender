@@ -70,12 +70,13 @@ function EmotionDetection() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Emotion Detection</h1>
-        <input
+        <h1>Emotion Based Music Recomender</h1>
+        <textarea
           type="text"
           value={textInput}
+          className='InputBox'
           onChange={handleTextInputChange}
-          placeholder="Enter text"
+          placeholder="          Enter text here"
         />
         <button onClick={handleTextSubmit}>Submit Text</button>
         <button onClick={handleVideoSubmit}>Capture Video</button>

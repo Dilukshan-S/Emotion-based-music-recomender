@@ -1,13 +1,13 @@
 import os
 import numpy as np
-import cv2  
+import cv2
 from keras.models import load_model
 import pickle
 from sklearn.base import BaseEstimator, TransformerMixin
 
 # Define paths to the models
 facial_emotion_model_path = '../models/facial_emotion_model.h5'
-text_emotion_model_path = '../models/text_emotion_pipeline.pkl'
+text_emotion_model_path = '../models/text_emotion_recognition_model.h5'
 
 # Load pre-trained models
 facial_emotion_model = load_model(facial_emotion_model_path)
@@ -15,7 +15,7 @@ with open(text_emotion_model_path, 'rb') as file:
     text_emotion_model = pickle.load(file)
 
 # Emotion labels for facial emotion model
-emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
+emotion_labels = ['sadness' 'anger' 'love' 'surprise' 'fear' 'joy' 'Neutral']
 
 # Function to predict emotion from text input
 def predict_emotion_from_text(text):
@@ -44,11 +44,12 @@ def predict_emotion_from_video():
     # Check if the camera opened successfully
     if not cap.isOpened():
         print("Error: Could not open video capture.")
-        return None
+        return "No face detected"
 
     # Variables for time management
     start_time = cv2.getTickCount()
     frame_count = 0
+    no_face_count = 0
     detected_emotions = []
 
     while True:
@@ -63,14 +64,16 @@ def predict_emotion_from_video():
         frame_count += 1
 
         # Draw bounding box around faces and predict emotions
-        frame, emotions = predict_emotion_with_bounding_box(frame)
+        frame, emotions, faces_detected = predict_emotion_with_bounding_box(frame)
 
         # Display the captured frame with bounding box and emotion label
         cv2.imshow('Video', frame)
 
         # Collect detected emotions
-        if emotions:
+        if faces_detected:
             detected_emotions.extend(emotions)
+        else:
+            no_face_count += 1
 
         # Check if 1 minute has passed or if user pressed 'q'
         if (cv2.waitKey(1) & 0xFF == ord('q')) or (cv2.getTickCount() - start_time >= 60 * cv2.getTickFrequency()):
@@ -79,6 +82,13 @@ def predict_emotion_from_video():
     # Release the capture
     cap.release()
     cv2.destroyAllWindows()
+
+    # Calculate the percentage of frames without faces
+    no_face_percentage = (no_face_count / frame_count) * 100
+
+    if no_face_percentage > 50:
+        print("No face detected in more than 50% of the video frames.")
+        return "No face detected"
 
     # Determine the most frequent emotion detected
     if detected_emotions:
@@ -94,15 +104,18 @@ def predict_emotion_with_bounding_box(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Load the pre-trained face cascade classifier for face detection
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    face_cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+    face_cascade = cv2.CascadeClassifier(face_cascade_path)
 
     # Detect faces in the grayscale frame
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5, minSize=(30, 30))
 
     emotions = []
+    faces_detected = False
 
     # Draw bounding boxes around faces and predict emotions
     for (x, y, w, h) in faces:
+        faces_detected = True
         # Extract face region from the frame
         face_region = frame[y:y+h, x:x+w]
 
@@ -123,7 +136,7 @@ def predict_emotion_with_bounding_box(frame):
         # Collect detected emotions
         emotions.append(detected_emotion_label)
 
-    return frame, emotions
+    return frame, emotions, faces_detected
 
 # Function to recommend a song based on combined emotions (to be implemented)
 def recommend_song(text_emotion, video_emotion):
