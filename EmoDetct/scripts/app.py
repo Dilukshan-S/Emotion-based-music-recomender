@@ -42,6 +42,9 @@ def predict_emotion_from_text(text):
     processed_text = preprocess_text(text)
     prediction = text_emotion_model.predict(processed_text)
 
+    # Debug: Print raw predictions
+    print("Raw prediction probabilities:", prediction)
+
     # Ensure prediction shape matches expectations
     if prediction.shape[1] != len(text_emotion_labels):
         raise ValueError(f"Prediction shape {prediction.shape} does not match text_emotion_labels length {len(text_emotion_labels)}")
@@ -49,6 +52,10 @@ def predict_emotion_from_text(text):
     # Get predicted emotion index
     predicted_index = np.argmax(prediction)
     
+    # Debug: Print predicted index and corresponding emotion
+    print("Predicted index:", predicted_index)
+    print("Predicted emotion:", text_emotion_labels[predicted_index])
+
     # Retrieve predicted emotion label
     emotion = text_emotion_labels[predicted_index]
     return emotion
