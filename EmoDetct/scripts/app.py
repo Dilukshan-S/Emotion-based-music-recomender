@@ -1,30 +1,56 @@
-import os
 import numpy as np
-import cv2  
+import cv2
+import pandas as pd
+import pickle
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from keras.models import load_model
-import pickle
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.base import BaseEstimator, TransformerMixin
 
-# Define paths to the models
+# Define paths to the models and tokenizer
 facial_emotion_model_path = '../models/facial_emotion_model.h5'
-text_emotion_model_path = '../models/text_emotion_pipeline.pkl'
+text_emotion_model_path = '../models/text_emotion_model3.h5'
+tokenizer_path = '../models/tokenizer.pkl'
 
 # Load pre-trained models
 facial_emotion_model = load_model(facial_emotion_model_path)
-with open(text_emotion_model_path, 'rb') as file:
-    text_emotion_model = pickle.load(file)
+text_emotion_model = load_model(text_emotion_model_path)
+
+# Load the tokenizer
+with open(tokenizer_path, 'rb') as handle:
+    tokenizer = pickle.load(handle)
 
 # Emotion labels for facial emotion model
 emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
+# Emotion labels for text emotion model
+text_emotion_labels = ['sadness', 'anger', 'love', 'surprise', 'fear', 'joy']
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  # Enable CORS for all routes
 
+# Function to preprocess text input
+def preprocess_text(text):
+    sequences = tokenizer.texts_to_sequences([text])
+    max_length = text_emotion_model.input_shape[1]  # Get the max_length used during training
+    padded_sequence = pad_sequences(sequences, maxlen=max_length)
+    return padded_sequence
+
 # Function to predict emotion from text input
 def predict_emotion_from_text(text):
-    emotion = text_emotion_model.predict([text])[0]
+    processed_text = preprocess_text(text)
+    prediction = text_emotion_model.predict(processed_text)
+
+    # Ensure prediction shape matches expectations
+    if prediction.shape[1] != len(text_emotion_labels):
+        raise ValueError(f"Prediction shape {prediction.shape} does not match text_emotion_labels length {len(text_emotion_labels)}")
+
+    # Get predicted emotion index
+    predicted_index = np.argmax(prediction)
+    
+    # Retrieve predicted emotion label
+    emotion = text_emotion_labels[predicted_index]
     return emotion
 
 # Custom transformer for face preprocessing
