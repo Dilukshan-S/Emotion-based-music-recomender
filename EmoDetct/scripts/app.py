@@ -9,9 +9,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.base import BaseEstimator, TransformerMixin
 
 # Define paths to the models and tokenizer
-facial_emotion_model_path = '../models/facial_emotion_model.h5'
-text_emotion_model_path = '../models/text_emotion_model3.h5'
-tokenizer_path = '../models/tokenizer.pkl'
+facial_emotion_model_path = 'models/facial_emotion_model.h5'
+text_emotion_model_path = 'models/text_emotion_model3.h5'
+tokenizer_path = 'models/tokenizer.pkl'
 
 # Load pre-trained models
 facial_emotion_model = load_model(facial_emotion_model_path)
