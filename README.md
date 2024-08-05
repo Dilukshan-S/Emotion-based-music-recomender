@@ -43,5 +43,5 @@ npm start
 
 Open your web browser and navigate to http://localhost:3000 to view the web page.
 
-Note:
+# Note:
 Music prediction logic is not implemented yet.
